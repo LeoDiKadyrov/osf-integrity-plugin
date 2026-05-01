@@ -95,3 +95,48 @@ def test_user_data_overrides_schema_defaults(tmp_path):
         content = Path(path).read_text(encoding="utf-8")
         assert "0.01" in content
         assert "0.05" not in content
+
+
+import httpx
+import respx
+from osf_assistant.tools.preregistration import osf_upload
+
+
+def test_osf_upload_raises_if_file_missing():
+    with pytest.raises(FileNotFoundError):
+        osf_upload("fake_token", "proj123", "/nonexistent/file.md")
+
+
+def test_osf_upload_sends_correct_request(tmp_path):
+    test_file = tmp_path / "preregistration_2026-05-01.md"
+    test_file.write_text("# Test preregistration", encoding="utf-8")
+
+    mock_body = {
+        "data": {
+            "links": {
+                "html": "https://osf.io/proj123/files/preregistration_2026-05-01.md"
+            }
+        }
+    }
+
+    with respx.mock:
+        respx.put(
+            "https://files.osf.io/v1/resources/proj123/providers/osfstorage/"
+        ).mock(return_value=httpx.Response(200, json=mock_body))
+
+        url = osf_upload("fake_token", "proj123", str(test_file))
+
+    assert url == "https://osf.io/proj123/files/preregistration_2026-05-01.md"
+
+
+def test_osf_upload_raises_on_api_error(tmp_path):
+    test_file = tmp_path / "preregistration.md"
+    test_file.write_text("# Test", encoding="utf-8")
+
+    with respx.mock:
+        respx.put(
+            "https://files.osf.io/v1/resources/bad_proj/providers/osfstorage/"
+        ).mock(return_value=httpx.Response(401, json={"message": "Unauthorized"}))
+
+        with pytest.raises(httpx.HTTPStatusError):
+            osf_upload("bad_token", "bad_proj", str(test_file))

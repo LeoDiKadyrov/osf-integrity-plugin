@@ -3,6 +3,8 @@ import os
 from datetime import date, datetime
 from pathlib import Path
 
+import httpx
+
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 
 VALID_TEMPLATES = {"osf_standard", "aspredicted"}
@@ -92,3 +94,38 @@ def _render_markdown(data: dict) -> str:
         )
 
     return "\n".join(lines)
+
+
+def osf_upload(token: str, project_id: str, file_path: str) -> str:
+    """Upload a preregistration file to an OSF project.
+
+    Args:
+        token: OSF Personal Access Token.
+        project_id: OSF project node ID (e.g. 'abc12').
+        file_path: Local path to the file to upload.
+
+    Returns:
+        Public HTML URL of the uploaded file on OSF.
+
+    Raises:
+        FileNotFoundError: If file_path does not exist.
+        httpx.HTTPStatusError: If the OSF API returns an error response.
+    """
+    path = Path(file_path)
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    upload_url = (
+        f"https://files.osf.io/v1/resources/{project_id}/providers/osfstorage/"
+    )
+
+    with httpx.Client() as client:
+        response = client.put(
+            upload_url,
+            params={"name": path.name},
+            headers={"Authorization": f"Bearer {token}"},
+            content=path.read_bytes(),
+        )
+        response.raise_for_status()
+
+    return response.json()["data"]["links"]["html"]
