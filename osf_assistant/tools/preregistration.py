@@ -96,11 +96,12 @@ def _render_markdown(data: dict) -> str:
     return "\n".join(lines)
 
 
-def osf_upload(token: str, project_id: str, file_path: str) -> str:
+def osf_upload(project_id: str, file_path: str) -> str:
     """Upload a preregistration file to an OSF project.
 
+    Requires OSF_TOKEN environment variable to be set.
+
     Args:
-        token: OSF Personal Access Token.
         project_id: OSF project node ID (e.g. 'abc12').
         file_path: Local path to the file to upload.
 
@@ -108,9 +109,17 @@ def osf_upload(token: str, project_id: str, file_path: str) -> str:
         Public HTML URL of the uploaded file on OSF.
 
     Raises:
+        ValueError: If OSF_TOKEN environment variable is not set.
         FileNotFoundError: If file_path does not exist.
         httpx.HTTPStatusError: If the OSF API returns an error response.
     """
+    token = os.getenv("OSF_TOKEN")
+    if not token:
+        raise ValueError(
+            "OSF_TOKEN environment variable is not set. "
+            "Add it to your .env file to enable OSF uploads."
+        )
+
     path = Path(file_path)
     if not path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")

@@ -119,13 +119,15 @@ Tell the user:
 ## Step 9 — OSF Upload (Optional)
 
 Ask:
-> "Would you like to upload this to your OSF project now? If yes, I'll need your OSF Personal Access Token and project node ID. You can skip this and upload manually later at osf.io."
+> "Would you like to upload this to your OSF project now? You'll need your OSF project node ID and your OSF Personal Access Token set in `.env` as `OSF_TOKEN`. You can skip this and upload manually later at osf.io."
 
-If the user provides both, call:
+If the user wants to upload:
+1. Tell them to add `OSF_TOKEN=their_token` to their `.env` file if not done already
+2. Ask for their OSF project node ID (e.g. `abc12` from the URL https://osf.io/abc12/)
+3. Call:
 
 ```
 osf_upload(
-  token=<OSF Personal Access Token>,
   project_id=<project node ID>,
   file_path=<path returned in step 8>
 )
