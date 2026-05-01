@@ -62,5 +62,36 @@ def test_generate_aspredicted_omits_osf_fields(tmp_path):
     with patch.dict("os.environ", {"OUTPUT_DIR": str(tmp_path)}):
         path = generate_preregistration(data, "aspredicted")
         content = Path(path).read_text(encoding="utf-8")
-        assert "AsPredicted" in content or "aspredicted" in content
+        assert "aspredicted" in content
         assert "Inclusion criteria" not in content
+
+
+def test_generate_raises_on_unknown_template(tmp_path):
+    with patch.dict("os.environ", {"OUTPUT_DIR": str(tmp_path)}):
+        with pytest.raises(ValueError, match="Unknown template"):
+            generate_preregistration({"title": "Test"}, "bad_template")
+
+
+def test_user_data_overrides_schema_defaults(tmp_path):
+    data = {
+        "title": "Test",
+        "context": "Testing",
+        "h0": "No effect",
+        "h1": "Some effect",
+        "design": "Between-subjects",
+        "iv": "Condition",
+        "dv": "Score",
+        "n": "40",
+        "test": "t-test",
+        "alpha": "0.01",  # overrides schema default of "0.05"
+        "corrections": "None",
+        "covariates": "None",
+        "measurement": "Scale",
+        "inclusion_criteria": "All adults",
+        "exclusion_criteria": "None",
+    }
+    with patch.dict("os.environ", {"OUTPUT_DIR": str(tmp_path)}):
+        path = generate_preregistration(data, "osf_standard")
+        content = Path(path).read_text(encoding="utf-8")
+        assert "0.01" in content
+        assert "0.05" not in content

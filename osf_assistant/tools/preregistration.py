@@ -1,9 +1,11 @@
 import json
 import os
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+
+VALID_TEMPLATES = {"osf_standard", "aspredicted"}
 
 
 def generate_preregistration(data: dict, template: str = "osf_standard") -> str:
@@ -16,6 +18,9 @@ def generate_preregistration(data: dict, template: str = "osf_standard") -> str:
     Returns:
         Absolute path to the saved Markdown file.
     """
+    if template not in VALID_TEMPLATES:
+        raise ValueError(f"Unknown template '{template}'. Valid options: {sorted(VALID_TEMPLATES)}")
+
     template_path = TEMPLATES_DIR / f"{template}.json"
     with open(template_path, encoding="utf-8") as f:
         schema = json.load(f)
@@ -26,7 +31,7 @@ def generate_preregistration(data: dict, template: str = "osf_standard") -> str:
     output_dir = Path(os.getenv("OUTPUT_DIR", "./preregistrations"))
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    filename = f"preregistration_{merged['generated_date']}.md"
+    filename = f"preregistration_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
     output_path = output_dir / filename
     output_path.write_text(content, encoding="utf-8")
 
@@ -34,6 +39,7 @@ def generate_preregistration(data: dict, template: str = "osf_standard") -> str:
 
 
 def _render_markdown(data: dict) -> str:
+    """Render merged preregistration data as a Markdown document."""
     template_type = data.get("template_type", "osf_standard")
     lines = [
         f"# Pre-Registration: {data.get('title', 'Untitled')}",
