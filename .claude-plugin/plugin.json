@@ -1,0 +1,7 @@
+{
+  "name": "osf-assistant",
+  "version": "0.1.0",
+  "description": "Open Science Framework assistant — preregistration and evidence search for researchers.",
+  "skills": "../skills/",
+  "mcpServers": "../.mcp.json"
+}

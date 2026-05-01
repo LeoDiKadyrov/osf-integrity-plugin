@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "osf-assistant": {
+      "command": "python",
+      "args": ["-m", "osf_assistant.server"],
+      "env": {}
+    }
+  }
+}
