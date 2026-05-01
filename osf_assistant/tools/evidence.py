@@ -50,3 +50,35 @@ def search_evidence(queries: list[str], limit: int = 10) -> list[dict]:
                 })
 
     return papers
+
+
+def format_evidence_table(papers: list[dict]) -> str:
+    """Format a list of papers as a Markdown table.
+
+    Args:
+        papers: Output from search_evidence().
+
+    Returns:
+        Markdown-formatted table string, or 'No papers found.' if empty.
+    """
+    if not papers:
+        return "No papers found."
+
+    header = "| Title | Authors | Year | N | Effect Size | DOI |"
+    separator = "|-------|---------|------|---|-------------|-----|"
+
+    rows = []
+    for p in papers:
+        raw_title = p.get("title", "")
+        title = (raw_title[:60] + "…") if len(raw_title) > 60 else raw_title
+        row = (
+            f"| {title} "
+            f"| {p.get('authors', '')} "
+            f"| {p.get('year') or ''} "
+            f"| {p.get('n') or ''} "
+            f"| {p.get('effect_size') or ''} "
+            f"| {p.get('doi') or ''} |"
+        )
+        rows.append(row)
+
+    return "\n".join([header, separator] + rows)

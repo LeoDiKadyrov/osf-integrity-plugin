@@ -1,7 +1,7 @@
 import pytest
 import httpx
 import respx
-from osf_assistant.tools.evidence import search_evidence
+from osf_assistant.tools.evidence import search_evidence, format_evidence_table
 
 SEMANTIC_SCHOLAR_URL = "https://api.semanticscholar.org/graph/v1/paper/search"
 
@@ -109,3 +109,50 @@ def test_search_evidence_raises_on_api_error():
 
         with pytest.raises(httpx.HTTPStatusError):
             search_evidence(["sleep"], limit=5)
+
+
+def test_format_evidence_table_returns_markdown_table():
+    papers = [
+        {
+            "title": "Sleep and Memory: A Review",
+            "authors": "Smith, J., Doe, A.",
+            "year": 2022,
+            "n": None,
+            "effect_size": None,
+            "design": None,
+            "doi": "10.1234/sleep.2022",
+        }
+    ]
+
+    table = format_evidence_table(papers)
+
+    assert "| Title |" in table
+    assert "|----" in table
+    assert "Sleep and Memory" in table
+    assert "10.1234/sleep.2022" in table
+    assert "2022" in table
+
+
+def test_format_evidence_table_truncates_long_titles():
+    papers = [
+        {
+            "title": "A" * 70,
+            "authors": "Smith, J.",
+            "year": 2022,
+            "n": None,
+            "effect_size": None,
+            "design": None,
+            "doi": None,
+        }
+    ]
+
+    table = format_evidence_table(papers)
+    # Title cell should be truncated to ≤ 63 chars (60 + ellipsis)
+    lines = table.split("\n")
+    data_row = lines[2]  # header, separator, first data row
+    title_cell = data_row.split("|")[1]
+    assert len(title_cell.strip()) <= 63
+
+
+def test_format_evidence_table_empty_returns_message():
+    assert format_evidence_table([]) == "No papers found."
