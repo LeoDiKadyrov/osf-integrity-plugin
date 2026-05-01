@@ -37,7 +37,7 @@ After all answers, call:
 
 ```
 check_bias(data={
-  "design": <A1 answer>,
+  "design": <A1 answer> + ". Blinding: " + <A3 answer>,
   "n": <A2 answer>,
   "dv": <A4 answer>,
   "corrections": <A5 answer>
