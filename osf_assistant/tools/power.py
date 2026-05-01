@@ -90,5 +90,7 @@ def _compute_n(test_type: str, effect_size: float, alpha: float, power: float) -
         z_alpha = stats.norm.ppf(1 - alpha / 2)
         z_beta = stats.norm.ppf(power)
         n = ((z_alpha + z_beta) / z_r) ** 2 + 3
+    else:
+        raise ValueError(f"Unreachable: {test_type} should have been validated")
 
     return math.ceil(n)
