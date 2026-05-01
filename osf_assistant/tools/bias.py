@@ -44,7 +44,7 @@ def _parse_preregistration(content: str) -> dict:
         body = '\n'.join(lines[1:]).strip()
         result[section_name] = body
 
-    # Extract specific inline field values
+    # Field names match the osf_standard and aspredicted template output format
     for line in content.split('\n'):
         if line.startswith('**Planned N:**'):
             result['n'] = line.replace('**Planned N:**', '').strip()
@@ -77,12 +77,14 @@ def _run_checks(data: dict) -> dict:
     design_lower = design.lower()
 
     # 1. Randomization
+    # Include Cyrillic keywords for Russian-language preregistrations
     if any(kw in design_lower for kw in ['random', 'рандом']):
         ok.append("Randomization mentioned in design")
     else:
         critical.append("No randomization stated in Design section")
 
     # 2. Control group
+    # Include Cyrillic keywords for Russian-language preregistrations
     if any(kw in design_lower for kw in ['control', 'контрол', 'placebo', 'comparison group']):
         ok.append("Control/comparison group mentioned")
     else:
